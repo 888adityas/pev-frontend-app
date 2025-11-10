@@ -1,6 +1,7 @@
 ## Prerequisites
 
 - Node.js 20.x (Recommended)
+- Rename .env.example to .env
 
 ## Installation
 
@@ -17,8 +18,6 @@ yarn dev
 npm i
 npm run dev
 ```
-
-**Rename .env.example to .env**
 
 ## Build
 
