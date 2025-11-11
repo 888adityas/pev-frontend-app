@@ -1,11 +1,30 @@
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import duration from 'dayjs/plugin/duration';
+import timezone from 'dayjs/plugin/timezone';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 // ----------------------------------------------------------------------
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+export function fDateTimeTZ(date, tz = 'UTC', format = formatStr.dateTime) {
+  if (!date) return null;
+
+  const isValid = dayjs(date).isValid();
+  if (!isValid) return 'Invalid time value';
+
+  try {
+    return dayjs(date).tz(tz).format(format);
+  } catch (err) {
+    console.error('Timezone conversion error:', err);
+    return dayjs(date).format(format);
+  }
+}
 
 /**
  * Docs: https://day.js.org/docs/en/display/format

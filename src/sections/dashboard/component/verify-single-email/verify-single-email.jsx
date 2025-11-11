@@ -12,7 +12,7 @@ import {
   CardContent,
 } from '@mui/material';
 
-const VerifySingleEmail = ({ onVerify, email, setEmail, onClose }) => {
+const VerifySingleEmail = ({ onVerify, email, setEmail, onClose, isSubmitting }) => {
   const [error, setError] = useState('');
 
   const validateEmail = (validemail) => {
@@ -105,7 +105,12 @@ const VerifySingleEmail = ({ onVerify, email, setEmail, onClose }) => {
             gap: 1,
           }}
         >
-          <Button variant="contained" onClick={handleVerify} color="primary">
+          <Button
+            disabled={isSubmitting}
+            variant="contained"
+            onClick={handleVerify}
+            color="primary"
+          >
             Verify
           </Button>
           <Button variant="outlined" color="inherit" onClick={onClose}>

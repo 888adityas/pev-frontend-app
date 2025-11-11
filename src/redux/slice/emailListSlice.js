@@ -13,6 +13,7 @@ const initialState = {
     getStatus: 'idle',
     getError: null,
     currentRow: null,
+    status_summary: [],
   },
   downloadReport: {
     error: null,
@@ -191,6 +192,8 @@ const handleFulfilled = (state, action) => {
       state.email_lists.totalCount = action.payload.data.pagination.total_count || 1;
       state.email_lists.currentPage = action.payload.data.pagination.page || 1;
       state.email_lists.perPage = action.payload.data.pagination.limit || 1;
+      // status wise data
+      state.email_lists.status_summary = action.payload.data.status_summary;
       break;
     case 'emailList/downloadReport/fulfilled':
       state.downloadReport.status = 'success';

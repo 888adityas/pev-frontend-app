@@ -4,20 +4,22 @@ import { Tooltip } from '@mui/material';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 
+import { fDateTimeTZ } from 'src/utils/format-time';
+
 import { Label } from 'src/components/label';
 
 // ----------------------------------------------------------------------
 
 export function CreditTableRow({ row, selected }) {
-  const timezone = ', (UTC+05:30) Asia/Kolkata';
+  const timezone = 'Asia/Kolkata';
 
   const getStatusTooltip = (status, dateTime) => {
     switch (status) {
-      case 'Single Verification':
+      case 'single':
         return `Single email address was checked for verification.`;
-      case 'Bulk Verification':
+      case 'bulk':
         return `Email list was uploaded and checked for verification.`;
-      case 'Email Credits Purchased':
+      case 'Credit purchased':
         return `Customer has purchased email credits for email verification`;
       default:
         return '';
@@ -32,10 +34,13 @@ export function CreditTableRow({ row, selected }) {
             arrow
             placement="top"
             disableInteractive
-            title={getStatusTooltip(row.status, row.status)}
+            title={getStatusTooltip(row?.source, row?.source)}
           >
-            <Label variant="soft" color={row.status.includes('deleted') ? 'error' : 'success'}>
-              {row.status.split('_').join(' ')}
+            <Label
+              variant="soft"
+              color={row?.result && row?.result !== 'deliverable' ? 'error' : 'success'}
+            >
+              {row?.source}
             </Label>
           </Tooltip>
         </Stack>
@@ -44,7 +49,7 @@ export function CreditTableRow({ row, selected }) {
             arrow
             placement="top"
             disableInteractive
-            title={`Action occurred at: ${row.dateCreatedOn} ${timezone}`}
+            title={`Action occurred at: ${fDateTimeTZ(row.dateCreatedOn, timezone)}`}
           >
             <Box
               component="span"
@@ -57,7 +62,8 @@ export function CreditTableRow({ row, selected }) {
                 display: 'inline-block',
               }}
             >
-              {row.dateCreatedOn}
+              {/* {dayjs(row.dateCreatedOn).format('MMM DD, YYYY HH:mm:ss')} */}
+              {fDateTimeTZ(row.dateCreatedOn, timezone)}
             </Box>
           </Tooltip>
         </Stack>
@@ -81,12 +87,12 @@ export function CreditTableRow({ row, selected }) {
               placement="top"
               disableInteractive
               title={
-                row.status === 'Email Credits Purchased'
+                row?.source === 'credit purchased'
                   ? 'Email credits alloted to the account.'
-                  : `${row.status === 'Single Verification' ? 'Email address' : 'Email list'}: ${row.message}`
+                  : `${row?.source === 'single' ? 'Email address' : 'Email list'}: ${row?.summary}`
               }
             >
-              <span>{row.message}</span>
+              <span>{row?.summary}</span>
             </Tooltip>
           </Box>
         </Stack>
@@ -103,7 +109,7 @@ export function CreditTableRow({ row, selected }) {
               fontSize: '0.875rem',
             }}
           >
-            {row.status === 'Single Verification' ? (
+            {/* {row.source === 'single' ? (
               <Tooltip arrow placement="top" disableInteractive title="Email address">
                 <span>Email address</span>{' '}
               </Tooltip>
@@ -116,7 +122,7 @@ export function CreditTableRow({ row, selected }) {
               >
                 <span>{row.folder}</span>{' '}
               </Tooltip>
-            )}
+            )} */}
           </Box>
         </Stack>
       </TableCell>
@@ -138,7 +144,7 @@ export function CreditTableRow({ row, selected }) {
               display: 'inline-block',
             }}
           >
-            {row.credits === 'Alloted' ? row.noOfCredits : `-${row.noOfCredits}`}
+            {row.noOfCredits}
           </Box>
         </Tooltip>
       </TableCell>

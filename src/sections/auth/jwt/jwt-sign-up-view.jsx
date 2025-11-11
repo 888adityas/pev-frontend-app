@@ -1,3 +1,4 @@
+// import { toast } from 'sonner';
 import { z as zod } from 'zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -111,24 +112,25 @@ export function JwtSignUpView() {
       return;
     }
 
-    // handleOpenSnackbar();
-
-    // setTimeout(() => {
-    //   setUserAlreadyExist(false);
-    // }, 5000);
-
     try {
-      await signUp({
+      const response = await signUp({
         email: data.email,
         password: data.password,
         first_name: data.first_name,
         last_name: data.last_name,
       });
+      console.log('Sign-up Res: ', response);
+
+      if (response?.status === 'error') {
+        throw new Error(response?.message);
+      }
+
       await checkUserSession?.();
 
       router.refresh();
     } catch (error) {
-      console.error(error);
+      console.error('Error Catch on UI=> ', error);
+      // toast.error(error?.message);
       setErrorMsg(error instanceof Error ? error.message : error);
     }
   });

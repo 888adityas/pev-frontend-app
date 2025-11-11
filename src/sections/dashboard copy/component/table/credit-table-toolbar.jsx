@@ -19,7 +19,14 @@ import {
 
 import { Iconify } from 'src/components/iconify';
 
-export function CreditTableToolbar({ filters, onResetPage, publish, onChangePublish }) {
+export function CreditTableToolbar({
+  filters,
+  onResetPage,
+  publish,
+  onChangePublish,
+  getFilteredLogs,
+  setReload,
+}) {
   const theme = useTheme();
   const isBelow600px = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -47,6 +54,7 @@ export function CreditTableToolbar({ filters, onResetPage, publish, onChangePubl
       handleFilterClose();
       resetFilters();
       setFilterApplied(false);
+      setReload((prev) => !prev);
     }
   };
 
@@ -62,6 +70,10 @@ export function CreditTableToolbar({ filters, onResetPage, publish, onChangePubl
     if (!isFilterApplied || e.target.tagName !== 'svg') {
       setFilterAnchorEl(e.currentTarget);
     }
+    // console.log(isFilterApplied);
+    // if (isFilterApplied) {
+    //   console.log('X');
+    // }
   };
 
   const handleFilterClose = () => {
@@ -72,6 +84,7 @@ export function CreditTableToolbar({ filters, onResetPage, publish, onChangePubl
     if (hasAnyFilterSelected) {
       setFilterApplied(true);
       handleFilterClose();
+      getFilteredLogs(selectedstatus);
     }
   };
 
@@ -124,7 +137,7 @@ export function CreditTableToolbar({ filters, onResetPage, publish, onChangePubl
             fullWidth
             value={filters.state.name}
             onChange={handleFilterName}
-            placeholder="Search by email, email list name and folder name..."
+            placeholder="Search by email, summary.."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

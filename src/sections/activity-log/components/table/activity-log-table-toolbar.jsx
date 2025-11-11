@@ -20,7 +20,12 @@ import {
 
 import { Iconify } from 'src/components/iconify';
 
-export function ActivityLogTableToolbar({ filters, onResetPage }) {
+export function ActivityLogTableToolbar({
+  filters,
+  onResetPage,
+  getActivityLogsWithFilter,
+  setReload,
+}) {
   const theme = useTheme();
   const isBelow600px = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -55,8 +60,8 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
   const [isFilterApplied, setFilterApplied] = useState(false);
 
   const filterfirstfield = ['Equals', 'Not Equals to', 'Contains', 'Does not contains'];
-  const filtersecondfield = ['All', 'API', 'User'];
-  const status = ['All', 'Created', 'Updated','Deleted'];
+  const filtersecondfield = ['API', 'User'];
+  const actions = ['Created', 'Updated', 'Deleted'];
 
   // Check if any filter field is filled
   const hasAnyFilterSelected = Object.values(filterState).some((section) =>
@@ -92,6 +97,7 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
   const handleFilterIconClick = (e) => {
     e.stopPropagation();
     if (isFilterApplied) {
+      setReload((prev) => !prev);
       handleFilterClose();
       resetFilters();
     }
@@ -111,6 +117,7 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
     if (hasAnyFilterSelected) {
       setFilterApplied(true);
       handleFilterClose();
+      getActivityLogsWithFilter(filterState, startDate, endDate);
     }
   };
   const [startDate, setStartDate] = useState(dayjs(new Date()));
@@ -178,22 +185,6 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
         direction={isBelow600px ? 'column' : 'row'}
         // sx={{ p: 2.5, width: '100%', gap: 1 }}
       >
-        {/* <Box sx={{ width: '100%' }}>
-          <TextField
-            fullWidth
-            value={filters.state.name}
-            onChange={handleFilterName}
-            placeholder="Search by actor email..."
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box> */}
-
         <Box
           sx={{
             display: 'flex',
@@ -307,7 +298,6 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
               },
             }}
           >
-            
             {/* Date range */}
             <Box
               sx={{
@@ -321,14 +311,16 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
                 mb: 2,
               }}
             >
-              <FormControl  sx={{ width: "250px", mb: { xs: 2, sm: 2, md: 0 }, justifyContent: 'center' }}>
+              <FormControl
+                sx={{ width: '250px', mb: { xs: 2, sm: 2, md: 0 }, justifyContent: 'center' }}
+              >
                 <Typography sx={{ fontSize: '14px', fontWeight: '600' }}>
                   <Tooltip
                     title="Filter logs by selecting start date and end date to view only the logs within this range."
                     arrow
                     placement="top"
                   >
-                  Date Range
+                    Date Range
                   </Tooltip>
                 </Typography>
               </FormControl>
@@ -408,8 +400,8 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
               </FormControl>
             </Box>
 
-             {/* Status */}
-             <Box
+            {/* Action */}
+            <Box
               sx={{
                 display: 'flex',
                 flexDirection: {
@@ -421,15 +413,18 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
                 mb: 2,
               }}
             >
-              <FormControl  sx={{ width:"250px", mb: { xs: 2, sm: 2, md: 0 }, justifyContent: 'center' }}>
+              <FormControl
+                sx={{ width: '250px', mb: { xs: 2, sm: 2, md: 0 }, justifyContent: 'center' }}
+              >
                 <Typography sx={{ fontSize: '14px', fontWeight: '600' }}>
-                <Tooltip
-                    title="Filter logs by selecting status to view only the logs of specific status."
+                  <Tooltip
+                    title="Filter logs by selecting action to view only the logs of specific action."
                     arrow
                     placement="top"
                   >
-                    <span>Status</span>
-                  </Tooltip></Typography>
+                    <span>Action</span>
+                  </Tooltip>
+                </Typography>
               </FormControl>
 
               <FormControl
@@ -460,7 +455,7 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
                     },
                   }}
                   size="small"
-                  options={status}
+                  options={actions}
                   // value={selectedStatus}
                   value={filterState.eventStatus.condition}
                   onChange={(_, newValue) =>
@@ -483,7 +478,9 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
                 mb: 2,
               }}
             >
-              <FormControl  sx={{ width:"250px", mb: { xs: 2, sm: 2, md: 0 }, justifyContent: 'center' }}>
+              <FormControl
+                sx={{ width: '250px', mb: { xs: 2, sm: 2, md: 0 }, justifyContent: 'center' }}
+              >
                 <Typography sx={{ fontSize: '14px', fontWeight: '600' }}>
                   <Tooltip
                     title="Filter logs by searching actor email to view only by this email."
@@ -523,9 +520,7 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
                 />
               </FormControl>
             </Box>
-          
 
-         
             {/* Event Source Filter Section */}
             <Box
               sx={{
@@ -539,7 +534,9 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
                 mb: 2,
               }}
             >
-              <FormControl  sx={{ width:"250px", mb: { xs: 2, sm: 2, md: 0 }, justifyContent: 'center' }}>
+              <FormControl
+                sx={{ width: '250px', mb: { xs: 2, sm: 2, md: 0 }, justifyContent: 'center' }}
+              >
                 <Typography sx={{ fontSize: '14px', fontWeight: '600' }}>
                   <Tooltip
                     title="Filter logs by selecting source to view only the logs of specific source."
@@ -592,7 +589,9 @@ export function ActivityLogTableToolbar({ filters, onResetPage }) {
                 mb: 2,
               }}
             >
-              <FormControl  sx={{ width:"250px", mb: { xs: 2, sm: 2, md: 0 }, justifyContent: 'center' }}>
+              <FormControl
+                sx={{ width: '250px', mb: { xs: 2, sm: 2, md: 0 }, justifyContent: 'center' }}
+              >
                 <Typography sx={{ fontSize: '14px', fontWeight: '600' }}>
                   <Tooltip
                     title="Filter logs by searching activity data to view only by this data."

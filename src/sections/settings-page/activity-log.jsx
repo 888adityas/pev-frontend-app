@@ -7,8 +7,8 @@ import { listItems } from 'src/_mock/app-big-card/_activityLogBigCardListItems';
 
 import BigCard from 'src/components/app-big-card/big-card';
 
-import { CreditTable } from '../dashboard copy/component/table/credit-table';
-// import { ActivityLogTable } from '../activity-log/components/table/activity-log-table';
+// import { CreditTable } from '../dashboard copy/component/table/credit-table';
+import { ActivityLogTable } from '../activity-log/components/table/activity-log-table';
 
 // ----------------------------------------------------------------------
 
@@ -37,9 +37,9 @@ export default function Page() {
             learnMoreLink="https://forum.pabbly.com/threads/activity-log.26108/"
           />
         </Grid>
-        {/* <ActivityLogTable/> */}
+        <ActivityLogTable />
 
-        <CreditTable />
+        {/* <CreditTable /> */}
       </Box>
     </>
   );

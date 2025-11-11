@@ -32,7 +32,7 @@ import axios, { endpoints } from 'src/utils/axios';
 
 import { varAlpha } from 'src/theme/styles';
 import { fetchEmailLists } from 'src/redux/slice/emailListSlice';
-import { DASHBOARD_STATUS_OPTIONS } from 'src/_mock/_table/_apptable/_dashboard';
+// import { DASHBOARD_STATUS_OPTIONS } from 'src/_mock/_table/_apptable/_dashboard';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -52,12 +52,6 @@ import { MoveToFolderPopover } from 'src/sections/dialog-boxes/move-to-folder-da
 import { EmailListTableRow } from './email-list-table-row';
 import { EmailListTableToolbar } from './email-list-table-toolbar';
 import { DashboardTableFiltersResult } from './dashboard-table-filters-result';
-
-// constants/table.js
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'All', tooltip: 'View all email lists that have been uploaded.' },
-  ...DASHBOARD_STATUS_OPTIONS,
-];
 
 const TABLE_HEAD = [
   {
@@ -117,8 +111,9 @@ function applyFilter({ inputData, comparator, filters }) {
 export const EmailListsTable = forwardRef((props, ref) => {
   const dispatch = useDispatch();
   const [reload, setReload] = useState(false);
+  const [timezone, setTimezone] = useState(null);
 
-  // ✅ Expose functions to parent
+  // Expose functions to parent
   useImperativeHandle(ref, () => ({
     reloadTable() {
       setReload((prev) => !prev);
@@ -131,8 +126,17 @@ export const EmailListsTable = forwardRef((props, ref) => {
     totalCount,
     getStatus,
     getError,
+    status_summary,
   } = useSelector((state) => state.emailList.email_lists);
 
+  const STATUS_OPTIONS = status_summary?.map((item) => {
+    const obj = {
+      value: item.value,
+      label: item.label,
+      count: item.count,
+    };
+    return obj;
+  });
   const theme = useTheme();
   const table = useTable({ defaultOrderBy: 'orderNumber' });
 
@@ -306,6 +310,13 @@ export const EmailListsTable = forwardRef((props, ref) => {
     handleClosePopover();
   };
 
+  const getTimezone = async () => {
+    const response = await axios.get(endpoints.auth.timezone);
+    const { data } = response;
+
+    if (data.status === 'success') setTimezone(data?.data);
+  };
+
   // ====== DATA FETCHING ==============
   useEffect(() => {
     // Dispatch email lists from redux store
@@ -316,6 +327,8 @@ export const EmailListsTable = forwardRef((props, ref) => {
         sort_order: 'desc',
       })
     );
+
+    getTimezone();
   }, [dispatch, table.page, table.rowsPerPage, reload]);
 
   return (
@@ -351,9 +364,29 @@ export const EmailListsTable = forwardRef((props, ref) => {
           boxShadow: `inset 0 -2px 0 0 ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
         }}
       >
-        {STATUS_OPTIONS.map((tab) => (
+        {STATUS_OPTIONS?.map((tab) => (
           <Tab
             key={tab.value}
+            onClick={() => {
+              if (tab.value === 'all') {
+                dispatch(
+                  fetchEmailLists({
+                    limit: table.rowsPerPage,
+                    skip: table.page * table.rowsPerPage,
+                    sort_order: 'desc',
+                  })
+                );
+              } else {
+                dispatch(
+                  fetchEmailLists({
+                    limit: table.rowsPerPage,
+                    skip: table.page * table.rowsPerPage,
+                    sort_order: 'desc',
+                    status: tab.value,
+                  })
+                );
+              }
+            }}
             iconPosition="end"
             value={tab.value}
             label={
@@ -375,9 +408,10 @@ export const EmailListsTable = forwardRef((props, ref) => {
                   'default'
                 }
               >
-                {['verified', 'processing', 'uploading', 'unverified'].includes(tab.value)
+                {/* {['verified', 'processing', 'uploading', 'unverified'].includes(tab.value)
                   ? tableData.filter((user) => user.status === tab.value).length
-                  : tableData.length}
+                  : tableData.length} */}
+                {tab.count}
               </Label>
             }
           />
@@ -395,7 +429,17 @@ export const EmailListsTable = forwardRef((props, ref) => {
         <DashboardTableFiltersResult
           filters={filters}
           totalResults={dataFiltered.length}
-          onResetPage={table.onResetPage}
+          onResetPage={() => {
+            console.log('thisss');
+            dispatch(
+              fetchEmailLists({
+                limit: table.rowsPerPage,
+                skip: table.page * table.rowsPerPage,
+                sort_order: 'desc',
+              })
+            );
+            table.onResetPage();
+          }}
           sx={{ p: 2.5, pt: 0 }}
         />
       )}
@@ -432,6 +476,7 @@ export const EmailListsTable = forwardRef((props, ref) => {
                   isProcessing={processingRowId === row.id && isStartVerification}
                   isCompleted={processingRowId === row.id && isVerificationCompleted}
                   setReload={setReload}
+                  TIMEZONE={timezone}
                 />
               ))}
 
@@ -462,13 +507,13 @@ export const EmailListsTable = forwardRef((props, ref) => {
         <MenuList>
           {selectedRow && selectedRow.status !== 'processing' && (
             <>
-              <Tooltip title="Move to folder" arrow placement="left">
+              {/* <Tooltip title="Move to folder" arrow placement="left">
                 <MenuItem onClick={handleMoveToFolder}>
                   <Iconify icon="fluent:folder-move-16-filled" />
                   Move to folder
                 </MenuItem>
               </Tooltip>
-              <Divider style={{ borderStyle: 'dashed' }} />
+              <Divider style={{ borderStyle: 'dashed' }} /> */}
               <Tooltip title="Delete email list." arrow placement="left">
                 <MenuItem
                   // onClick={handleConfirmDelete}

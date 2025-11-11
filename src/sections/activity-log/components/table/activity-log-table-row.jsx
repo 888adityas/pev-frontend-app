@@ -4,26 +4,36 @@ import { Tooltip } from '@mui/material';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 
+import { fDateTimeTZ } from 'src/utils/format-time';
+
 import { Label } from 'src/components/label';
 
 // ----------------------------------------------------------------------
 
-export function ActivityLogTableRow({ row, selected, onOpenDrawer }) {
-  const timezone = '(UTC+05:30) Asia/Kolkata';
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'created':
+export function ActivityLogTableRow({ row, selected, onOpenDrawer, timezone }) {
+  const getActionColor = (action) => {
+    switch (action) {
+      case 'POST':
         return 'success';
-      case 'updated':
+      case 'PATCH':
         return 'warning';
-      case 'deleted':
+      case 'DELETE':
         return 'error';
       default:
         return 'default';
     }
   };
-  const getStatusLabel = (status) => status.charAt(0).toUpperCase() + status.slice(1);
+  const getActionLabel = (action) => {
+    let str = action;
+    if (str === 'POST') {
+      str = 'Created';
+    } else if (str === 'PATCH') {
+      str = 'Updated';
+    } else if (str === 'DELETE') {
+      str = 'Deleted';
+    }
+    return str;
+  };
 
   // Limit bullet points to a maximum of 20
 
@@ -37,21 +47,21 @@ export function ActivityLogTableRow({ row, selected, onOpenDrawer }) {
               placement="top"
               disableInteractive
               title={
-                row.status === 'deleted'
+                row.action === 'DELETE'
                   ? 'Deleted means actions like removing a team member or deleting an email list'
-                  : row.status === 'updated'
+                  : row.action === 'PATCH'
                     ? 'Updated means actions like regenerating the API key or updating team member access permissions'
-                    : row.status === 'created'
+                    : row.action === 'POST'
                       ? 'Created means actions like starting email verification, uploading an email list, adding a team member, or downloading a verification report'
-                      : `${row.status.charAt(0).toUpperCase() + row.status.slice(1)} action has been performed`
+                      : `${row.action.charAt(0).toUpperCase() + row.action.slice(1)} action has been performed`
               }
             >
               <Label
                 variant="soft"
-                color={getStatusColor(row.status)}
+                color={getActionColor(row.action)}
                 sx={{ textTransform: 'capitalize' }}
               >
-                {getStatusLabel(row.status)}
+                {getActionLabel(row?.action)}
               </Label>
             </Tooltip>
           </Box>
@@ -70,9 +80,10 @@ export function ActivityLogTableRow({ row, selected, onOpenDrawer }) {
               arrow
               placement="top"
               disableInteractive
-              title={`Action Performed: ${row.date}, ${timezone}.`}
+              title={`Action Performed: ${fDateTimeTZ(row.date, timezone)}.`}
             >
-              {row.date}
+              {/* {row?.date} */}
+              {fDateTimeTZ(row.date, timezone)}
             </Tooltip>
           </Box>
         </Stack>
@@ -97,7 +108,7 @@ export function ActivityLogTableRow({ row, selected, onOpenDrawer }) {
               disableInteractive
               title="Name of the actor who performed the activity."
             >
-              <span> {row.actor_name}</span>
+              <span> {row?.actor_name}</span>
             </Tooltip>
           </Box>
 
@@ -118,7 +129,7 @@ export function ActivityLogTableRow({ row, selected, onOpenDrawer }) {
               disableInteractive
               title="Email address of the actor who performed the activity."
             >
-              <span>{row.actor_email}</span>
+              <span>{row?.actor_email}</span>
             </Tooltip>
           </Box>
         </Stack>
@@ -143,7 +154,7 @@ export function ActivityLogTableRow({ row, selected, onOpenDrawer }) {
               disableInteractive
               title="View the section where the action occurred."
             >
-              <span>{row.section}</span>
+              <span>{row.module_name}</span>
             </Tooltip>
           </Box>
 

@@ -11,7 +11,7 @@ import { useSetState } from 'src/hooks/use-set-state';
 
 import { fIsBetween } from 'src/utils/format-time';
 
-import { fetchActivityLogs } from 'src/redux/slice/logsSlice';
+import { fetchEmailVerificationLogs } from 'src/redux/slice/logsSlice';
 
 import { Scrollbar } from 'src/components/scrollbar';
 import {
@@ -37,57 +37,103 @@ const TABLE_HEAD = [
 // ----------------------------------------------------------------------
 
 export function CreditTable() {
+  const filters = useSetState({
+    name: '',
+    status: 'all',
+  });
   const dispatch = useDispatch();
+  const [reload, setReload] = useState(false);
   const table = useTable({ defaultOrderBy: 'createdAt' });
 
   // Redux store
   const {
     status,
-    data: activityLogs = [],
+    data: emailVerificationLogs = [],
     totalCount,
-  } = useSelector((state) => state.logs?.activityLogs || {});
+  } = useSelector((state) => state.logs?.emailVerificationLogs || {});
 
   const [tableData, setTableData] = useState([]);
 
   // 🔹 Update table data when API data changes
   useEffect(() => {
-    if (activityLogs && Array.isArray(activityLogs)) {
-      const mapped = activityLogs?.map((item) => ({
+    if (emailVerificationLogs && Array.isArray(emailVerificationLogs)) {
+      const mapped = emailVerificationLogs?.map((item) => ({
         ...item,
         id: item._id,
-        status: item.action,
-        dateCreatedOn: item.createdAt,
-        credits: item.credits_used ? 'Consumed' : 'Alloted',
-        noOfCredits: item.credits_used,
-        message: item.summary,
+        dateCreatedOn: item?.createdAt,
+        credits: item?.credits_used ? 'Consumed' : 'Alloted',
+        noOfCredits: item.credits,
       }));
       setTableData(mapped);
     } else {
       setTableData([]);
     }
-  }, [activityLogs]);
+  }, [emailVerificationLogs]);
 
-  // 🔹 Fetch Activity Logs
+  //  Fetch Verification Logs
+  // useEffect(() => {
+  //   const para = {
+  //     limit: table.rowsPerPage,
+  //     sort_order: 'desc',
+  //     skip: table.page * table.rowsPerPage,
+  //   };
+  //   dispatch(fetchEmailVerificationLogs(para));
+  // }, [dispatch, table.page, table.rowsPerPage, reload]);
+
+  // Search Input handler
   useEffect(() => {
-    dispatch(
-      fetchActivityLogs({
-        limit: table.rowsPerPage,
-        sort_order: 'desc',
-        skip: table.page * table.rowsPerPage,
-      })
-    );
-  }, [dispatch, table.page, table.rowsPerPage]);
+    const handler = setTimeout(() => {
+      const search = filters?.state?.name;
+      if (search) {
+        const para = {
+          limit: table.rowsPerPage,
+          skip: table.page * table.rowsPerPage,
+          sort_order: 'desc',
+          search,
+        };
+        dispatch(fetchEmailVerificationLogs(para));
+      } else {
+        const para = {
+          limit: table.rowsPerPage,
+          skip: table.page * table.rowsPerPage,
+          sort_order: 'desc',
+        };
+        dispatch(fetchEmailVerificationLogs(para));
+      }
+    }, 800);
 
-  const filters = useSetState({
-    name: '',
-    status: 'all',
-  });
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [filters.state.name, dispatch, table.page, table.rowsPerPage, reload]);
 
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters: filters.state,
-  });
+  const getFilteredLogs = async (selectedstatus) => {
+    let filterStatus = selectedstatus?.toLowerCase();
+    if (filterStatus?.includes('single')) filterStatus = 'single';
+    if (filterStatus?.includes('bulk')) filterStatus = 'bulk';
+    if (filterStatus?.includes('purchased')) filterStatus = 'credit purchased';
+    const para = {
+      limit: table.rowsPerPage,
+      skip: table.page * table.rowsPerPage,
+      sort_order: 'desc',
+      source: filterStatus,
+    };
+    dispatch(fetchEmailVerificationLogs(para));
+  };
+
+  // const dataFiltered = applyFilter({
+  //   inputData: tableData,
+  //   comparator: getComparator(table.order, table.orderBy),
+  //   filters: filters.state,
+  // });
+  const dataFiltered =
+    filters.state.name.trim() !== ''
+      ? tableData // ✅ use server search results directly
+      : applyFilter({
+          inputData: tableData,
+          comparator: getComparator(table.order, table.orderBy),
+          filters: filters.state,
+        });
 
   const dataInPage = dataFiltered;
   const canReset =
@@ -113,7 +159,12 @@ export function CreditTable() {
       />
       <Divider />
 
-      <CreditTableToolbar filters={filters} onResetPage={table.onResetPage} />
+      <CreditTableToolbar
+        filters={filters}
+        onResetPage={table.onResetPage}
+        getFilteredLogs={getFilteredLogs}
+        setReload={setReload}
+      />
 
       {canReset && (
         <CreditTableFiltersResult

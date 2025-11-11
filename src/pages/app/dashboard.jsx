@@ -24,8 +24,8 @@ import axios, { endpoints } from 'src/utils/axios';
 
 import { DashboardContent } from 'src/layouts/app';
 import { fetchCreditStats } from 'src/redux/slice/creditSlice';
-import { uploadCsv, clearFileUpload } from 'src/redux/slice/emailListSlice';
 import { listItems } from 'src/_mock/app-big-card/_dashboardBigCardListItems';
+import { uploadCsv, clearFileUpload, fetchEmailLists } from 'src/redux/slice/emailListSlice';
 
 import { Iconify } from 'src/components/iconify';
 import BigCard from 'src/components/app-big-card/big-card';
@@ -49,8 +49,12 @@ export default function Page() {
   const [selectedFolder, setSelectedFolder] = useState('Home');
   const [isFromSingleEmail, setIsFromSingleEmail] = useState(false);
 
+  const [reload, setReload] = useState(false);
+
   const [listName, setListName] = useState('');
   const [csvFile, setCsvFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const dispatch = useDispatch();
 
   const { status: fileUploadStatus, error: fileUploadError } = useSelector(
@@ -64,7 +68,7 @@ export default function Page() {
   useEffect(() => {
     // fetch Dashboard credits statistics
     dispatch(fetchCreditStats());
-  }, [dispatch]);
+  }, [dispatch, reload]);
 
   const [alertState, setAlertState] = useState({
     open: false,
@@ -88,6 +92,8 @@ export default function Page() {
 
   // Handle Verify Email [single]
   const handleVerify = async () => {
+    setIsSubmitting(true);
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setIsFromSingleEmail(true);
 
@@ -105,6 +111,7 @@ export default function Page() {
           });
 
           handleDialogClose('singleEmail');
+          setReload((prev) => !prev);
         } else if (
           response.data?.status === 'success' &&
           response?.data?.data?.result !== 'deliverable'
@@ -123,8 +130,6 @@ export default function Page() {
         });
 
         handleDialogClose('singleEmail');
-
-        return;
       }
     } else {
       toast.error(`The input email is invalid!`, {
@@ -135,6 +140,8 @@ export default function Page() {
       });
     }
     setEmail('');
+    setIsSubmitting(false);
+    dispatch(fetchCreditStats());
   };
 
   // Bulk verify .csv file upload with name
@@ -144,6 +151,7 @@ export default function Page() {
 
   // Upload .csv file
   const uploadCsvHandler = () => {
+    setIsSubmitting(true);
     const formData = new FormData();
     formData.append('file', csvFile);
     formData.append('name', listName);
@@ -163,7 +171,9 @@ export default function Page() {
           marginTop: '15px',
         },
       });
+      setIsSubmitting(false);
     }
+    setIsSubmitting(false);
   };
 
   // Handle notificaions for file uploading, success or error case
@@ -175,7 +185,9 @@ export default function Page() {
           marginTop: '15px',
         },
       });
+      dispatch(fetchEmailLists({ sort_order: 'desc', limit: 5 })); /// fetchEmailLists
       dispatch(clearFileUpload());
+      setIsSubmitting(false);
     } else if (fileUploadStatus === 'failed') {
       toast.error(fileUploadError || `Something went wrong`, {
         duration: Infinity,
@@ -184,6 +196,7 @@ export default function Page() {
         },
       });
       dispatch(clearFileUpload());
+      setIsSubmitting(false);
     }
   }, [fileUploadStatus, fileUploadError, dispatch]);
 
@@ -329,6 +342,7 @@ export default function Page() {
             email={email}
             setEmail={setEmail}
             onClose={() => handleDialogClose('singleEmail')}
+            isSubmitting={isSubmitting}
           />
         </DialogContent>
       </Dialog>
@@ -369,7 +383,12 @@ export default function Page() {
               justifyContent: 'flex-end',
             }}
           >
-            <Button onClick={() => uploadCsvHandler()} variant="contained" color="primary">
+            <Button
+              disabled={isSubmitting}
+              onClick={() => uploadCsvHandler()}
+              variant="contained"
+              color="primary"
+            >
               Upload
             </Button>
             <Button onClick={() => handleDialogClose('bulkEmail')} variant="outlined">

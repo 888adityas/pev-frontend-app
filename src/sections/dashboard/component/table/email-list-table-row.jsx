@@ -1,8 +1,10 @@
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import utc from 'dayjs/plugin/utc';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
+import timezone from 'dayjs/plugin/timezone';
 
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -44,12 +46,17 @@ export function EmailListTableRow({
   isProcessing,
   isCompleted,
   setReload,
+  TIMEZONE,
 }) {
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [alertState, setAlertState] = useState(null);
 
+  const [isActionDisabled, setIsActionDisabled] = useState(false);
+
   const csvfilesname = [{ name: row.name, numberOfEmails: row.numberOfEmails }];
-  const timezone = '(UTC+05:30) Asia/Kolkata';
+
   const currentFile = csvfilesname[dashboardTableIndex % csvfilesname.length];
   const navigate = useNavigate();
   const popover = usePopover();
@@ -69,51 +76,76 @@ export function EmailListTableRow({
   };
 
   const handleStartBulkVerification = async () => {
+    setIsActionDisabled(true);
     if (!row.requiresCredits) {
       const res = await dispatch(
         startBulkVerification({ jobId: row.bulk_verify_id, listId: row._id })
-      ); // async thunk to start verification
+      );
       console.log('res: ', res);
       let error = null;
-      if (res.error.message && res.payload === 'Permission denied: Read-only access') {
+      if (res?.error?.message && res.payload === 'Permission denied: Read-only access') {
         error = 'Permission denied: Read-only access';
       } else {
-        error = res.error.message;
+        error = res?.error?.message;
       }
       if (error) {
         toast.error(error);
       }
-      dispatch(startVerification());
-      setTimeout(() => {
+
+      if (res?.payload?.status === 'success') {
+        // dispatch(startVerification());
+        toast.success(res?.payload?.message ?? 'Bulk Verification Started');
         setReload((prev) => !prev);
-      }, 3000);
+      }
     }
+    setIsActionDisabled(false);
+  };
+
+  const getEmailListStatus = async () => {
+    setIsActionDisabled(true);
+    const res = await dispatch(
+      fetchEmailListStatus({ jobId: row.bulk_verify_id, listId: row._id })
+    );
+    console.log('res: ', res);
+    let error = null;
+    if (res?.error?.message && res.payload === 'Permission denied: Read-only access') {
+      error = 'Permission denied: Read-only access';
+    } else {
+      error = res?.error?.message;
+    }
+    if (error) {
+      toast.error(error);
+    }
+
+    let successToastText;
+    if (res?.payload?.data?.bouncify?.status === 'completed') {
+      successToastText = 'Verification Completed';
+    } else {
+      successToastText = `List Verification Status: ${res?.payload?.data?.bouncify?.status}`;
+    }
+
+    if (res?.payload?.status === 'success') {
+      // dispatch(startVerification());
+      toast.success(successToastText);
+      setReload((prev) => !prev);
+    }
+
+    setIsActionDisabled(false);
   };
 
   // row actions
   const handleAction = async () => {
     switch (row.status) {
       case 'unverified':
-        onStartVerification();
         handleStartBulkVerification();
         break;
       case 'verified':
         setIsDrawerOpen(true);
         break;
       case 'verifying':
-        console.log('Checking status...');
-        dispatch(fetchEmailListStatus({ jobId: row.bulk_verify_id }));
-
-        setTimeout(() => {
-          setReload((prev) => !prev);
-        }, 3000);
-        break;
+      case 'uploading':
       case 'processing':
-        if (row.status === 'processing') {
-          dispatch(fetchEmailListStatus({ jobId: row.bulk_verify_id }));
-        }
-        setIsDrawerOpen(true);
-        dispatch(startVerification());
+        getEmailListStatus();
         break;
       default:
         break;
@@ -141,9 +173,9 @@ export function EmailListTableRow({
     switch (status) {
       case 'verified':
         return 'Download Report';
-      case 'processing':
-        return 'Verification In Progress';
       case 'verifying':
+      case 'uploading':
+      case 'processing':
         return 'Check Status';
       case 'unverified':
         return 'Start Verification';
@@ -227,7 +259,7 @@ export function EmailListTableRow({
               arrow
               placement="top"
               disableInteractive
-              title={`Email List Uploaded: ${row.date}, ${timezone}`}
+              title={`Email List Uploaded: ${row.date}, ${TIMEZONE}`}
             >
               <Box
                 component="span"
@@ -240,7 +272,8 @@ export function EmailListTableRow({
                   display: 'inline-block',
                 }}
               >
-                {dayjs(row.createdAt).toString()}
+                {/* {dayjs(row.createdAt).toString()} */}
+                {dayjs(row.createdAt).tz(TIMEZONE).format('DD MMM YYYY, hh:mm A')}
               </Box>
             </Tooltip>
           </Stack>
@@ -308,7 +341,12 @@ export function EmailListTableRow({
               placement="top"
               disableInteractive
             >
-              <Button variant="outlined" color="primary" onClick={handleAction}>
+              <Button
+                disabled={isActionDisabled}
+                variant="outlined"
+                color="primary"
+                onClick={handleAction}
+              >
                 {getButtonText(row.status)}
               </Button>
             </Tooltip>

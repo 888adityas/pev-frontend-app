@@ -21,8 +21,6 @@ import { useSetState } from 'src/hooks/use-set-state';
 
 import { fIsBetween } from 'src/utils/format-time';
 
-import { EMAIL_LISTS_STATUS_OPTIONS } from 'src/_mock/_table/_admintable/_emailLists';
-
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { CustomPopover } from 'src/components/custom-popover';
@@ -48,10 +46,6 @@ import { EmailListTableFiltersResult } from './email-lists-table-filters-result'
 
 // ----------------------------------------------------------------------
 
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'All', tooltip: 'View all email lists that have been uploaded.' },
-  ...EMAIL_LISTS_STATUS_OPTIONS,
-];
 const TABLE_HEAD = [
   {
     id: 'status_date',
@@ -359,8 +353,13 @@ export function EmailListTable() {
     <Card>
       <CardHeader
         title={
-          <Box display="flex" justifyContent="space-between" flexDirection={{xs:'column',md:'row'}} alignItems={{xs:'flex-end',md:'center'}}>
-            <Box display="inline-block" mb={{xs:2,md:0}}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            flexDirection={{ xs: 'column', md: 'row' }}
+            alignItems={{ xs: 'flex-end', md: 'center' }}
+          >
+            <Box display="inline-block" mb={{ xs: 2, md: 0 }}>
               <Typography variant="h6">
                 <Tooltip
                   arrow
@@ -372,16 +371,16 @@ export function EmailListTable() {
                 </Tooltip>
               </Typography>
               <Typography sx={{ mt: '4px' }} variant="body2" color="grey.600">
-              Access and manage all the email lists uploaded by Pabbly customers. You can add or remove email credits from the customers Pabbly Email Verification accounts.
+                Access and manage all the email lists uploaded by Pabbly customers. You can add or
+                remove email credits from the customers Pabbly Email Verification accounts.
               </Typography>
             </Box>
             <Box display="inline-block">
-            <EmailListTableToolbar
-        filters={filters}
-        onResetPage={table.onResetPage}
-        numSelected={table.selected.length} // Add this line
-      /> 
-             
+              <EmailListTableToolbar
+                filters={filters}
+                onResetPage={table.onResetPage}
+                numSelected={table.selected.length} // Add this line
+              />
             </Box>
           </Box>
         }

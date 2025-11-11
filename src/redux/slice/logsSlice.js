@@ -36,10 +36,28 @@ export const fetchActivityLogs = createAsyncThunk(
   }
 );
 
+// Async thunk to fetch verification logs
+export const fetchEmailVerificationLogs = createAsyncThunk(
+  'logs/emailVerificationLogs',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(endpoints.logs.verificationLogs, { params });
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data ?? error.message);
+    }
+  }
+);
+
 // handle rejected
 const handleRejected = (state, action) => {
   switch (action.type) {
     case 'logs/activityLogs/rejected':
+      state.status = 'rejected';
+      state.error = action.payload || action.error.message;
+      break;
+    case 'logs/emailVerificationLogs/rejected':
       state.status = 'rejected';
       state.error = action.payload || action.error.message;
       break;
@@ -52,6 +70,9 @@ const handleRejected = (state, action) => {
 const handlePending = (state, action) => {
   switch (action.type) {
     case 'logs/activityLogs/pending':
+      state.status = 'loading';
+      break;
+    case 'logs/emailVerificationLogs/pending':
       state.status = 'loading';
       break;
     default:
@@ -71,6 +92,16 @@ const handleFulfilled = (state, action) => {
       state.activityLogs.currentPage = action.payload.data.pagination.page || 1;
       state.activityLogs.perPage = action.payload.data.pagination.limit || 5;
       break;
+
+    case 'logs/emailVerificationLogs/fulfilled':
+      state.status = 'success';
+      state.error = null;
+      state.emailVerificationLogs.data = action.payload.data.items || [];
+      state.emailVerificationLogs.totalPages = action.payload.data.pagination.pages || 1;
+      state.emailVerificationLogs.totalCount = action.payload.data.pagination.total_count || 1;
+      state.emailVerificationLogs.currentPage = action.payload.data.pagination.page || 1;
+      state.emailVerificationLogs.perPage = action.payload.data.pagination.limit || 5;
+      break;
     default:
       break;
   }
@@ -88,6 +119,13 @@ const logsSlice = createSlice({
       state.activityLogs.currentPage = 1; // page
       state.activityLogs.perPage = 5; // limit
     },
+    clearEmailVerificationLogs: (state) => {
+      state.emailVerificationLogs.data = [];
+      state.emailVerificationLogs.totalPages = 1; // pages
+      state.emailVerificationLogs.totalCount = 0; // total_count
+      state.emailVerificationLogs.currentPage = 1; // page
+      state.emailVerificationLogs.perPage = 5; // limit
+    },
   },
 
   extraReducers: (builders) => {
@@ -95,9 +133,14 @@ const logsSlice = createSlice({
       // fetch activity logs case handle
       .addCase(fetchActivityLogs.pending, handlePending)
       .addCase(fetchActivityLogs.rejected, handleRejected)
-      .addCase(fetchActivityLogs.fulfilled, handleFulfilled);
+      .addCase(fetchActivityLogs.fulfilled, handleFulfilled)
+
+      // fetch verification logs case handle
+      .addCase(fetchEmailVerificationLogs.pending, handlePending)
+      .addCase(fetchEmailVerificationLogs.rejected, handleRejected)
+      .addCase(fetchEmailVerificationLogs.fulfilled, handleFulfilled);
   },
 });
 
-export const { clearActivityLogs } = logsSlice.actions;
+export const { clearActivityLogs, clearEmailVerificationLogs } = logsSlice.actions;
 export default logsSlice.reducer;

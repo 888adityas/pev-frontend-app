@@ -166,6 +166,7 @@ export const endpoints = {
   },
   logs: {
     activityLogs: '/api/v1/logs/activity-logs', // GET
+    verificationLogs: '/api/v1/logs/verification-logs', // GET
   },
 };
 

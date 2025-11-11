@@ -361,17 +361,6 @@ export function DashboardTable() {
       )}
 
       <Box sx={{ position: 'relative' }}>
-        {/* <DashboardTableSelectedAction
-          dense={table.dense}
-          numSelected={table.selected.length}
-          rowCount={dataFiltered.length}
-          onSelectAllRows={(checked) =>
-            table.onSelectAllRows(
-              checked,
-              dataFiltered.map((row) => row.id)
-            )
-          }
-        /> */}
         <Scrollbar>
           <Table size={table.dense ? 'small' : 'medium'}>
             <TableHeadCustom

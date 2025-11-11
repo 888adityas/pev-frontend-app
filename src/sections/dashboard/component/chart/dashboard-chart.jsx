@@ -13,7 +13,7 @@ import { fNumber } from 'src/utils/format-number';
 import {
   downloadReport,
   clearDownloadReport,
-  clearBulkVerification,
+  // clearBulkVerification,
 } from 'src/redux/slice/emailListSlice';
 
 import { Iconify } from 'src/components/iconify';
@@ -43,13 +43,9 @@ export function DashboardChart({
   } = useSelector((state) => state.emailList.bulkVerification);
 
   const { currentRow: currRowFromStore } = useSelector((state) => state.emailList.email_lists);
-  console.log('Bulk Verify Result: ', bulkVerifyResult);
-  console.log('Bulk Verify Status: ', bulkVerifyStatus);
-  console.log('Bulk Verify Error: ', bulkVerifyError);
 
   const [currRow, setCurrRow] = useState(row);
-  console.log('currRow: ', currRow);
-  console.log('Current Row From Store: ', currRowFromStore);
+
   const dispatch = useDispatch();
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -184,21 +180,21 @@ export function DashboardChart({
   }, [downloadReportStatus, dispatch]);
 
   // For async notifications [bulk verification]
-  useMemo(() => {
-    if (bulkVerifyStatus === 'success') {
-      setCurrRow(bulkVerifyResult.emailList);
-      toast.success('Email verification is in progress.');
-      setTimeout(() => {
-        toast.success('Verified Successfully.');
-        setIsDrawerOpen(false);
-        setReload((prev) => !prev);
-      }, 3000);
-      dispatch(clearBulkVerification());
-    } else if (bulkVerifyStatus === 'failed') {
-      toast.error('Email verification failed. Please try again.');
-      dispatch(clearBulkVerification());
-    }
-  }, [bulkVerifyStatus, dispatch, bulkVerifyResult?.emailList, setIsDrawerOpen, setReload]);
+  // useMemo(() => {
+  //   if (bulkVerifyStatus === 'success') {
+  //     setCurrRow(bulkVerifyResult.emailList);
+  //     toast.success('Email verification is in progress.');
+  //     setTimeout(() => {
+  //       toast.success('Verified Successfully.');
+  //       setIsDrawerOpen(false);
+  //       setReload((prev) => !prev);
+  //     }, 3000);
+  //     dispatch(clearBulkVerification());
+  //   } else if (bulkVerifyStatus === 'failed') {
+  //     toast.error('Email verification failed. Please try again.');
+  //     dispatch(clearBulkVerification());
+  //   }
+  // }, [bulkVerifyStatus, dispatch, bulkVerifyResult?.emailList, setIsDrawerOpen, setReload]);
 
   // Alert effects
   useEffect(() => {

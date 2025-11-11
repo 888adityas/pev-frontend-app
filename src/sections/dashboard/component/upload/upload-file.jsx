@@ -81,53 +81,15 @@ export default function Upload({ setAlertState, listName, setListName, handleVer
             mb: '24px',
           }}
         />
-        {/* <Autocomplete
-          sx={{ mb: 3 }}
-          options={folders}
-          getOptionLabel={(option) => option}
-          value={selectedFolder}
-          onChange={handleFolderChange}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Select Folder"
-              placeholder="Choose the folder where the email list should be uploaded"
-              helperText={
-                <span>
-                  Choose the folder where the email list should be uploaded.{' '}
-                  <Link
-                    href="https://forum.pabbly.com/threads/verify-email.26310/"
-                    underline="always"
-                    onClick={() => console.log('Learn more clicked')}
-                    target="_blank"
-                  >
-                    Learn more
-                  </Link>
-                </span>
-              }
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 1,
-                },
-              }}
-            />
-          )}
-        /> */}
+
         <FileUpload
           uploadInformation="Upload File OR Drag and Drop file here (Only CSV files allowed). Download Sample File here."
           allowedFileTypes={['text/csv']}
           fileName="sample_csv.csv"
           fileErrorMessage="Upload Error: Please ensure you upload a valid CSV file. You can download a sample file here."
           setAlertState={setAlertState}
-          onSampleFileClick={() => {
-            // Handle sample file download here
-            // e.g., window.open('/path/to/sample.csv', '_blank');
-          }}
-          // onFileUpload={(file) => {
-
-          // }}
           onFileUpload={handleVerifyBulk}
-          se
+          // se
         />
       </Box>
     </Box>

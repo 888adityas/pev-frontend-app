@@ -74,7 +74,7 @@ export const signUp = async ({ email, password, first_name, last_name }) => {
     return signupResponse;
   } catch (error) {
     console.error('Error during sign up:', error);
-    throw error;
+    return error;
   }
 };
 
